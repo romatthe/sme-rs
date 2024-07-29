@@ -1,10 +1,10 @@
-use std::ffi::CString;
-
 use nom::branch::alt;
-use nom::bytes::complete::{tag, take};
+use nom::bytes::complete::{tag, take_until};
+use nom::combinator::map_res;
 use nom::IResult;
 use nom::multi::many_till;
 use nom::number::complete::le_u32;
+use nom::sequence::terminated;
 
 #[derive(Debug)]
 pub enum VdfNode<'a> {
@@ -14,7 +14,7 @@ pub enum VdfNode<'a> {
     },
     String {
         key: VdfString<'a>,
-        value: CString,
+        value: VdfString<'a>,
     },
     Int {
         key: VdfString<'a>,
@@ -75,7 +75,7 @@ fn parse_vdf_node_string(input: &[u8]) -> IResult<&[u8], VdfNode> {
 
     // println!("String node: Key {:?}, Value: {:?}", key, value);
 
-    Ok((input, VdfNode::String { key, value }))
+    Ok((input, VdfNode::String { key, value: VdfString::String(value) }))
 }
 
 
@@ -93,18 +93,9 @@ fn parse_vdf_node_integer(input: &[u8]) -> IResult<&[u8], VdfNode> {
 }
 
 /// Parse a VDF encoded string.
-fn parse_vdf_string(input: &[u8]) -> IResult<&[u8], CString> {
-    // println!("Parsing vdf encoded string");
-    let pos = input
-        .iter().position(|b| *b == b'\0').unwrap();
-    let (input, bytes) = take(pos + 1)(input)?;
-    // let string = unsafe { CString::from_vec_unchecked(bytes.to_vec()) };
-    let string = CString::new("".to_string().as_str()).unwrap();
-
-    // println!("Bytes: {:?}", bytes);
-    // println!("String: {:?}", string);
-
-    Ok((input, string))
+fn parse_vdf_string(input: &[u8]) -> IResult<&[u8], &str> {
+    let null_str = terminated(take_until("\0"), tag("\0"));
+    map_res(null_str,  |s|std::str::from_utf8(s))(input)
 }
 
 fn parse_vdf_key(input: &[u8]) -> IResult<&[u8], VdfString> {
