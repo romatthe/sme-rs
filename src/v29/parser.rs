@@ -6,6 +6,7 @@ use nom::number::complete::{le_i64, le_u32, le_u64};
 use nom::sequence::{terminated, tuple};
 
 use crate::v29::{HEADER_MAGIC, HEADER_VERSION};
+use crate::vdf::parser::parse_vdf_nodes;
 
 #[derive(Debug)]
 pub struct AppInfo<'a> {
@@ -38,6 +39,13 @@ pub(crate) fn parse_app_info(input: &[u8]) -> IResult<&[u8], AppInfo> {
 
     let (input, (header, apps, table)) = tuple((header, apps, table))(input)?;
 
+    // for app in apps {
+    //     parse_vdf_nodes(app.blob)
+    // }
+
+    // println!("String table: {:?}", table);
+    println!("String table: {:?}", table[808]);
+
     Ok((input, AppInfo {
         header,
         apps,
@@ -69,9 +77,19 @@ fn parse_app_sections(input: &[u8]) -> IResult<&[u8], Vec<AppSection>> {
 fn parse_app_section(input: &[u8]) -> IResult<&[u8], AppSection> {
     let mut info = tuple((le_u32, le_u32, le_u32, le_u32, le_u64));
     let (input, (appid, size, info_state, last_updated, pics_token)) = info(input)?;
-    let (input, sha1) = take(20usize)(input)?;
+    let (input, sha1_text) = take(20usize)(input)?;
     let (input, change_number) = le_u32(input)?;
-    let (input, blob) = take(size - 40)(input)?;
+    let (input, sha1_binary) = take(20usize)(input)?;
+    let (input, blob) = take(size - 60)(input)?;
+
+    println!("AppId: {}", appid);
+    println!("Last updated: {}", last_updated);
+    println!("Change number: {}", change_number);
+    println!("First byte: {}", blob[0]);
+
+    let (_, vdf) = parse_vdf_nodes(blob)?;
+
+    println!("VDF: {:?}", vdf);
 
     Ok((input, AppSection {
         appid,
