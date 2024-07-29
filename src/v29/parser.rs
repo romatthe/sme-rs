@@ -26,6 +26,7 @@ pub struct AppSection {
     pub(crate) info_state: u32,
     pub(crate) last_updated: u32,
     pub(crate) pics_token: u64,
+    pub(crate) change_number: u32,
     pub(crate) blob: Vec<u8>,
 }
 
@@ -69,14 +70,16 @@ fn parse_app_section(input: &[u8]) -> IResult<&[u8], AppSection> {
     let mut info = tuple((le_u32, le_u32, le_u32, le_u32, le_u64));
     let (input, (appid, size, info_state, last_updated, pics_token)) = info(input)?;
     let (input, sha1) = take(20usize)(input)?;
-    let (input, blob) = take(size - 36)(input)?;
+    let (input, change_number) = le_u32(input)?;
+    let (input, blob) = take(size - 40)(input)?;
 
     Ok((input, AppSection {
         appid,
         info_state,
         last_updated,
         pics_token,
-        blob: blob.into()
+        change_number,
+        blob: blob.into(),
     }))
 }
 
