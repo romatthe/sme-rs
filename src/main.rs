@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
     let file_read2 = File::open("appinfo_duplicated.vdf")?;
     let app_info2 = v29::AppInfo::parse(file_read2)?;
 
-    for app in app_info.apps {
+    // for app in app_info.apps {
         // let mut buffer = Vec::new();
         // vdf::packer::pack_vdf(&mut buffer, app.vdf.as_slice())?;
         // let (_, app2) = vdf::parser::parse_vdf_nodes(buffer.as_slice())?;
@@ -36,14 +36,18 @@ fn main() -> anyhow::Result<()> {
         // if app.blob != buffer {
         //     println!("SPAGHETTI");
         // }
-    }
+    // }
 
     // app_info.pack(file_write)?;
 
     // println!("Apps: {}", app_info.apps.len());
 
     // let app = app_info.apps.iter().find(|app| app.appid == 1325200).unwrap();
-    // let app = app_info.apps.iter().find(|app| app.appid == 1072420).unwrap();
+    let app = app_info.apps.iter().find(|app| app.appid == 1072420).unwrap();
+
+    let str = vdf::stringify::stringify_vdf(&app.vdf)?;
+
+    println!("{str}");
 
     // println!("Found: {:?}", app.vdf);
     // println!("StringRef name: {:?}", app_info.table[4]);
