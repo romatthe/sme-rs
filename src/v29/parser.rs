@@ -1,12 +1,11 @@
-use std::fs::File;
-use std::io::{BufReader, Read};
 use nom::bytes::complete::{tag, take, take_until};
-use nom::combinator::map_res;
-use nom::{Finish, IResult};
-use nom::error::Error;
 use nom::multi::{count, many_till};
 use nom::number::complete::{le_i64, le_u32, le_u64};
 use nom::sequence::{terminated, tuple};
+use nom::IResult;
+use std::ffi::CString;
+use std::fs::File;
+use std::io::Read;
 
 use anyhow::anyhow;
 
@@ -14,12 +13,9 @@ use crate::v29::{AppInfo, AppInfoHeader, AppSection, HEADER_MAGIC, HEADER_VERSIO
 use crate::vdf::parser::parse_vdf_nodes;
 
 /// Parse an `appinfo.vdf` file according to the v29 specification.
-// pub(crate) fn parse_app_info<'a>(buffer: Vec<u8>) -> IResult<&'a [u8], AppInfo<'a>> {
-// pub(crate) fn parse_app_info (input: &[u8]) -> anyhow::Result<AppInfo> {
-pub(crate) fn parse_app_info (mut input_file: File) -> anyhow::Result<AppInfo> {
-// pub(crate) fn parse_app_info<'a> (mut buffer: BufReader<File>) -> IResult<&'a [u8], AppInfo<'a>> {
+pub(crate) fn parse_app_info (mut input: File) -> anyhow::Result<AppInfo> {
     let mut buffer = Vec::new();
-    input_file.read_to_end(&mut buffer)?;
+    input.read_to_end(&mut buffer)?;
 
     let header = parse_header;
     let apps = parse_app_sections;
@@ -58,6 +54,7 @@ fn parse_app_sections(input: &[u8]) -> IResult<&[u8], Vec<AppSection>> {
 /// Parse a single app section.
 fn parse_app_section(input: &[u8]) -> IResult<&[u8], AppSection> {
     let mut info = tuple((le_u32, le_u32, le_u32, le_u32, le_u64));
+
     let (input, (appid, size, info_state, last_updated, pics_token)) = info(input)?;
     let (input, sha1_text) = take(20usize)(input)?;
     let (input, change_number) = le_u32(input)?;
@@ -66,21 +63,20 @@ fn parse_app_section(input: &[u8]) -> IResult<&[u8], AppSection> {
 
     let (_, vdf) = parse_vdf_nodes(blob)?;
 
-    // println!("VDF: {:?}", vdf);
-
     Ok((input, AppSection {
         appid,
         info_state,
         last_updated,
         pics_token,
+        sha1_text: sha1_text.to_vec(),
         change_number,
+        sha1_binary: sha1_binary.to_vec(),
         vdf,
-        blob: blob.into(),
     }))
 }
 
 /// Parse the table of null-terminated strings at the end of the appinfo file.
-fn parse_string_table(input: &[u8]) -> IResult<&[u8], Vec<String>> {
+fn parse_string_table(input: &[u8]) -> IResult<&[u8], Vec<CString>> {
     let (input, string_count) = le_u32(input)?;
     let (input, string_table) = count(parse_nullstring, string_count as usize)(input)?;
 
@@ -88,11 +84,10 @@ fn parse_string_table(input: &[u8]) -> IResult<&[u8], Vec<String>> {
 }
 
 /// Parse a null-terminated variable length string.
-fn parse_nullstring(input: &[u8]) -> IResult<&[u8], String> {
-    let null_str = terminated(take_until("\0"), tag("\0"));
-    let (input, utf_str) = map_res(null_str, |s| std::str::from_utf8(s))(input)?;
-    let owned_str  = String::from(utf_str);
+fn parse_nullstring(input: &[u8]) -> IResult<&[u8], CString> {
+    let (input, null_str) = terminated(take_until("\0"), tag("\0"))(input)?;
+    let cstring = CString::new(null_str).unwrap();
 
-    Ok((input, owned_str))
+    Ok((input, cstring))
 }
 

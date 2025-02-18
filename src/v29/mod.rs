@@ -1,3 +1,4 @@
+use std::ffi::CString;
 use std::fs::File;
 use std::io::{BufReader, Read};
 
@@ -15,7 +16,7 @@ pub const HEADER_MAGIC: &[u8; 3] = b"\x44\x56\x07";
 pub struct AppInfo {
     pub(crate) header: AppInfoHeader,
     pub(crate) apps: Vec<AppSection>,
-    pub(crate) table: Vec<String>,
+    pub(crate) table: Vec<CString>,
 }
 
 #[derive(Debug)]
@@ -30,23 +31,23 @@ pub struct AppSection {
     pub(crate) info_state: u32,
     pub(crate) last_updated: u32,
     pub(crate) pics_token: u64,
+    pub(crate) sha1_text: Vec<u8>,      // TODO: REMOVE!
     pub(crate) change_number: u32,
+    pub(crate) sha1_binary: Vec<u8>,    // TODO: REMOVE!
     pub(crate) vdf: Vec<VdfNode>,
-    pub(crate) blob: Vec<u8>,
 }
 
 impl AppInfoParserPacker for AppInfo {
-    fn parse(mut app_info_file: File) -> anyhow::Result<Self> {
+    fn parse(app_info_file: File) -> anyhow::Result<Self> {
         let app_info = parse_app_info(app_info_file)?;
-
-        // let mut input = Vec::new();
-        // let buff_size = buffer.read_to_end(&mut input)?;
 
         Ok(app_info)
     }
 
-    fn pack(self) -> anyhow::Result<()> {
-        todo!()
+    fn pack(self, mut app_info_file: File) -> anyhow::Result<()> {
+        packer::pack_app_info(&mut app_info_file, &self)?;
+
+        Ok(())
     }
 
     fn update_entry() -> anyhow::Result<()> {
