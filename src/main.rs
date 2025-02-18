@@ -4,18 +4,21 @@ use std::io::Read;
 
 use nom::Finish;
 use sha1::digest::DynDigest;
+use crate::appinfo::AppInfoParserPacker;
 
 mod v29;
 mod vdf;
+mod appinfo;
 
-fn main() -> io::Result<()> {
-    let mut file = File::open("appinfo.vdf")?;
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer)?;
+fn main() -> anyhow::Result<()> {
+    let file = File::open("appinfo.vdf")?;
+    let app_info = v29::AppInfo::parse(file)?;
 
-    let (_ , app_info) = v29::parser::parse_app_info(&buffer).unwrap();
+    // println!("Apps: {}", app_info.apps.len());
 
-    println!("Apps: {}", app_info.apps.len());
+    let app = app_info.apps.iter().find(|app| app.appid == 1325200).unwrap();
+
+    println!("Found: {:?}", app);
 
     for app in app_info.apps {
         // println!("AppID: {}", app.appid);
