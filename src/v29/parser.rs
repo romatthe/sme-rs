@@ -74,6 +74,7 @@ fn parse_app_section(input: &[u8]) -> IResult<&[u8], AppSection> {
         last_updated,
         pics_token,
         change_number,
+        vdf,
         blob: blob.into(),
     }))
 }

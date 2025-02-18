@@ -31,6 +31,7 @@ pub struct AppSection {
     pub(crate) last_updated: u32,
     pub(crate) pics_token: u64,
     pub(crate) change_number: u32,
+    pub(crate) vdf: Vec<VdfNode>,
     pub(crate) blob: Vec<u8>,
 }
 

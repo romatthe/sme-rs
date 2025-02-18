@@ -6,29 +6,30 @@ use nom::multi::many_till;
 use nom::number::complete::le_u32;
 use nom::sequence::terminated;
 
-#[derive(Debug)]
-pub enum VdfNode<'a> {
+#[derive(Clone, Debug)]
+pub enum VdfNode {
     Nested {
-        key: VdfString<'a>,
-        nodes: Vec<VdfNode<'a>>,
+        key: VdfString,
+        nodes: Vec<VdfNode>,
     },
     String {
-        key: VdfString<'a>,
-        value: VdfString<'a>,
+        key: VdfString,
+        value: VdfString,
     },
     Int {
-        key: VdfString<'a>,
+        key: VdfString,
         value: u32,
     },
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct VdfStringRef(u32);
 
-#[derive(Debug)]
-pub enum VdfString<'a>{
+#[derive(Clone, Debug)]
+pub enum VdfString {
     StringRef(u32),
-    String(&'a str),
+    // String(&'a str),
+    String(String),
 }
 
 pub fn parse_vdf_nodes(input: &[u8]) -> IResult<&[u8], Vec<VdfNode>> {
@@ -75,7 +76,7 @@ fn parse_vdf_node_string(input: &[u8]) -> IResult<&[u8], VdfNode> {
 
     // println!("String node: Key {:?}, Value: {:?}", key, value);
 
-    Ok((input, VdfNode::String { key, value: VdfString::String(value) }))
+    Ok((input, VdfNode::String { key, value: VdfString::String(String::from(value)) }))
 }
 
 
