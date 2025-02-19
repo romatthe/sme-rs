@@ -3,83 +3,96 @@ use crate::vdf::parser::{VdfNode, VdfString};
 
 pub struct Serializer<'a> {
     string_table: &'a Vec<CString>,
+    buffer: String,
 }
 
 impl<'a> Serializer<'a> {
     pub fn new(string_table: &'a Vec<CString>) -> Self {
         Serializer {
             string_table,
+            buffer: String::new(),
         }
     }
 
-    pub fn serialize_vdf(self, vdf: &[VdfNode]) -> anyhow::Result<String> {
-        let mut buffer = String::new();
-        buffer.push_str(&self.serialize_vdf_nodes(vdf, 0)?);
+    pub fn serialize_vdf(mut self, vdf: &[VdfNode]) -> anyhow::Result<String> {
+        &mut self.serialize_vdf_nodes(vdf, 0)?;
 
-        Ok(buffer)
+        Ok(self.buffer)
     }
 
-    fn serialize_vdf_nodes(&self, nodes: &[VdfNode], indentation: usize) -> anyhow::Result<String> {
-        let mut temp = String::new();
-
+    fn serialize_vdf_nodes(&mut self, nodes: &[VdfNode], indentation: usize) -> anyhow::Result<()> {
         for node in nodes {
-            temp.push_str(&self.serialize_vdf_node(&node, indentation)?);
+            &mut self.serialize_vdf_node(&node, indentation)?;
         }
 
-        Ok(temp)
+        Ok(())
     }
 
-    fn serialize_vdf_node(&self, node: &VdfNode, indentation: usize) -> anyhow::Result<String> {
+    fn serialize_vdf_node(&mut self, node: &VdfNode, indentation: usize) -> anyhow::Result<()> {
         match node {
-            VdfNode::Nested { .. } => self.serialize_vdf_node_nested(node, indentation),
-            VdfNode::String { .. } => self.serialize_vdf_node_string(node, indentation),
-            VdfNode::Int { .. }    => self.serialize_vdf_node_int(node, indentation),
+            VdfNode::Nested { .. } => {
+                &mut self.serialize_vdf_node_nested(node, indentation)?;
+            },
+            VdfNode::String { .. } => {
+                &mut self.serialize_vdf_node_string(node, indentation)?;
+            },
+            VdfNode::Int { .. }    => {
+                &mut self.serialize_vdf_node_int(node, indentation)?;
+            },
         }
+
+        Ok(())
     }
 
-    fn serialize_vdf_node_nested(&self, node: &VdfNode, indentation: usize) -> anyhow::Result<String> {
-        let mut temp = String::new();
+    fn serialize_vdf_node_nested(&mut self, node: &VdfNode, indentation: usize) -> anyhow::Result<()> {
         let tabs = "\t".repeat(indentation);
         if let VdfNode::Nested { key, nodes} = node {
-            temp.push_str(&format!("{tabs}{}\n", &self.serialize_vdf_string(key)?));
-            temp.push_str(&format!("{tabs}{{\n"));
-            temp.push_str(&format!("{}", &self.serialize_vdf_nodes(nodes, indentation + 1)?));
-            temp.push_str(&format!("{tabs}}}\n"));
+            &self.buffer.push_str(&format!("{tabs}"));
+            &self.serialize_vdf_string(key)?;
+            &self.buffer.push_str(&format!("\n"));
+            &self.buffer.push_str(&format!("{tabs}{{\n"));
+            &self.serialize_vdf_nodes(nodes, indentation + 1)?;
+            &self.buffer.push_str(&format!("{tabs}}}\n"));
         }
 
-        Ok(temp)
+        Ok(())
     }
 
-    fn serialize_vdf_node_string(&self, node: &VdfNode, indentation: usize) -> anyhow::Result<String> {
-        let mut temp = String::new();
+    fn serialize_vdf_node_string(&mut self, node: &VdfNode, indentation: usize) -> anyhow::Result<()> {
         let tabs = "\t".repeat(indentation);
         if let VdfNode::String { key, value } = node {
-            temp.push_str(&format!("{tabs}{}\t{}\n", &self.serialize_vdf_string(key)?, &self.serialize_vdf_string(value)?));
+            &self.buffer.push_str(&format!("{tabs}"));
+            &self.serialize_vdf_string(key)?;
+            &self.buffer.push_str(&format!("\t"));
+            &self.serialize_vdf_string(value)?;
+            &self.buffer.push_str(&format!("\n"));
         }
 
-        Ok(temp)
+        Ok(())
     }
 
-    fn serialize_vdf_node_int(&self, node: &VdfNode, indentation: usize) -> anyhow::Result<String> {
-        let mut temp = String::new();
+    fn serialize_vdf_node_int(&mut self, node: &VdfNode, indentation: usize) -> anyhow::Result<()> {
         let tabs = "\t".repeat(indentation);
         if let VdfNode::Int { key, value } = node {
-            temp.push_str(&format!("{tabs}{}\t{}\n", &self.serialize_vdf_string(key)?, value));
+            &self.buffer.push_str(&format!("{tabs}"));
+            &self.serialize_vdf_string(key)?;
+            &self.buffer.push_str(&format!("\t"));
+            &self.buffer.push_str(&format!("{}\n", value));
         }
 
-        Ok("".to_string())
+        Ok(())
     }
 
-    fn serialize_vdf_string(&self, string: &VdfString) -> anyhow::Result<String> {
+    fn serialize_vdf_string(&mut self, string: &VdfString) -> anyhow::Result<()> {
         let result = match string {
             VdfString::StringRef(ref_id) => {
-                format!("\"{}\"", ref_id)                   // TODO: This should be looked up in the string table!!!!
+                &self.buffer.push_str(&format!("\"{}\"", ref_id));                   // TODO: This should be looked up in the string table!!!!
             },
             VdfString::String(string) => {
-                format!("\"{}\"", string.to_str()?)         // TODO: Does this even work properly?
+                &self.buffer.push_str(&format!("\"{}\"", string.to_str()?));         // TODO: Does this even work properly?
             },
         };
 
-        Ok(result)
+        Ok(())
     }
 }
