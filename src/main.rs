@@ -5,6 +5,7 @@ use crate::appinfo::AppInfoParserPacker;
 use crate::vdf::parser::{VdfNode, VdfString};
 use nom::Finish;
 use sha1::{Digest, Sha1};
+use crate::vdf::serializer::Serializer;
 
 mod v29;
 mod vdf;
@@ -45,7 +46,8 @@ fn main() -> anyhow::Result<()> {
     // let app = app_info.apps.iter().find(|app| app.appid == 1325200).unwrap();
     let app = app_info.apps.iter().find(|app| app.appid == 1072420).unwrap();
 
-    let str = vdf::stringify::stringify_vdf(&app.vdf)?;
+    let serializer = Serializer::new(&app_info.table);
+    let str = serializer.serialize_vdf(&app.vdf)?;
 
     println!("{str}");
 
