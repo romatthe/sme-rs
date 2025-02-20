@@ -45,24 +45,40 @@ fn main() -> anyhow::Result<()> {
 
     // let app = app_info.apps.iter().find(|app| app.appid == 1325200).unwrap();
     let app = app_info.apps.iter().find(|app| app.appid == 1072420).unwrap();
+    // let app = app_info.apps.iter().find(|app| app.appid == 7).unwrap();
 
     let serializer = VdfSerializer::new(&app_info.table);
-    let serialized = serializer.serialize_vdf(&app.vdf)?;
 
-    let mut hasher = Sha1::new();
-    hasher.update(serialized.as_bytes());
+    let mut buffer_good = String::new();
+    let mut buffer_bad = String::new();
+    let mut counter_good = 0;
+    let mut counter_bad = 0;
 
-    let sha1_original = &app.sha1_text;
-    let sha1_calculated = hasher.finalize();
+    for app in app_info.apps {
+        let serialized = serializer.serialize_vdf(&app.vdf)?;
 
-    println!("Original  : {:?}", sha1_original.as_slice());
-    println!("Calculated: {:?}", sha1_calculated.as_slice());
+        let mut hasher = Sha1::new();
+        hasher.update(serialized.as_bytes());
 
-    // for app in app_info.apps {
-    //     let str = serializer.serialize_vdf(&app.vdf)?;
-    //     println!("{str}");
-    // }
+        let sha1_original = &app.sha1_text;
+        let sha1_calculated = hasher.finalize();
 
+        if *sha1_original == *sha1_calculated {
+            // println!("Original  : {:?}", sha1_original.as_slice());
+            // println!("Calculated: {:?}", sha1_calculated.as_slice());
+            // println!("{serialized}");
+
+            buffer_good.push_str(&serialized);
+            counter_good += 1;
+        } else {
+            buffer_bad.push_str(&serialized);
+            counter_bad += 1;
+        }
+    }
+
+    // println!("{}", buffer_bad);
+    println!("Count good: {}", counter_good);
+    println!("Count bad:  {}", counter_bad);
 
     // println!("Found: {:?}", app.vdf);
     // println!("StringRef name: {:?}", app_info.table[4]);

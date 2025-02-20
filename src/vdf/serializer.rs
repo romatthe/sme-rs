@@ -89,11 +89,16 @@ impl<'a> VdfSerializer<'a> {
                 buffer.push_str(&format!("\"{}\"", ref_val.to_str()?));
             },
             VdfString::String(string) => {
-                buffer.push_str(&format!("\"{}\"", string.to_str()?));         // TODO: Does this even work properly?
+                let string = sanitize_string(string.to_str()?);
+                buffer.push_str(&format!("\"{}\"", &string));         // TODO: Does this even work properly?
             },
         };
 
         Ok(())
     }
+}
+
+fn sanitize_string(string: &str) -> String {
+    string.replace("\\", "\\\\")
 }
 
