@@ -14,7 +14,8 @@ mod appinfo;
 fn main() -> anyhow::Result<()> {
     let file_read = File::open("appinfo.vdf")?;
     let mut app_info = v29::AppInfo::parse(file_read)?;
-    let mut file_create = File::create("appinfo_duplicated.vdf")?;
+    // let mut file_create = File::create("appinfo_duplicated.vdf")?;
+    let mut file_create = File::create("/home/romatthe/.local/share/Steam/appcache/appinfo.vdf")?;
 
     // v29::packer::pack_app_info(&mut file_create, &app_info)?;
     // drop(file_create);

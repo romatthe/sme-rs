@@ -7,18 +7,24 @@ use sha1::{Digest, Sha1};
 use crate::vdf;
 
 pub fn pack_app_info<S: Write>(writer: &mut S, app_info: &AppInfo) -> anyhow::Result<()> {
-    pack_app_info_header(writer, &app_info.header)?;
-    pack_app_info_apps(writer, &app_info.apps)?;
+    // Write the entire apps section to a buffer first so we can figure out the string table offset
+    let mut app_buffer = Vec::new();
+    pack_app_info_apps(&mut app_buffer, &app_info.apps)?;
+
+    // Calculate the header offset value first before writing it
+    let offset = app_buffer.len() + size_of_val(&[0x00, 0x00, 0x00, 0x00]);
+    pack_app_info_header(writer, &app_info.header, offset as i64)?;
+    writer.write(&app_buffer)?;
     pack_app_info_string_table(writer, &app_info.table)?;
 
     Ok(())
 }
 
-fn pack_app_info_header<S: Write>(mut writer: &mut S, header: &AppInfoHeader) -> anyhow::Result<()> {
+fn pack_app_info_header<S: Write>(mut writer: &mut S, header: &AppInfoHeader, offset: i64) -> anyhow::Result<()> {
     writer.write(HEADER_VERSION)?;
     writer.write(HEADER_MAGIC)?;
     writer.write(&header.universe.to_le_bytes())?;
-    writer.write(&header.offset.to_le_bytes())?;
+    writer.write(&offset.to_le_bytes())?;
 
     Ok(())
 }
