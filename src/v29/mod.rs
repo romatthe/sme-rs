@@ -1,10 +1,10 @@
 use std::ffi::CString;
 use std::fs::File;
 use std::io::{BufReader, Read};
-
-use crate::appinfo::AppInfoParserPacker;
+use indexmap::IndexMap;
+use crate::appinfo::{AppInfoParserPacker, AppPatch};
 use crate::v29::parser::parse_app_info;
-use crate::vdf::parser::VdfNode;
+use crate::vdf::parser::{VdfNode, VdfString};
 
 pub(crate) mod parser;
 pub(crate) mod packer;
@@ -15,7 +15,7 @@ pub const HEADER_MAGIC: &[u8; 3] = b"\x44\x56\x07";
 #[derive(Debug)]
 pub struct AppInfo {
     pub(crate) header: AppInfoHeader,
-    pub(crate) apps: Vec<AppSection>,
+    pub(crate) apps: IndexMap<u32, AppSection>, // Indexed by AppID
     pub(crate) table: Vec<CString>,
 }
 
@@ -50,7 +50,23 @@ impl AppInfoParserPacker for AppInfo {
         Ok(())
     }
 
-    fn update_entry() -> anyhow::Result<()> {
-        todo!()
+    fn patch_app(&mut self, patch: AppPatch) -> anyhow::Result<()> {
+        match self.apps.get_mut(&patch.appid) {
+            Some(app) => {
+                if let VdfNode::Nested { key, nodes } = &mut app.vdf[0] {
+                    if let VdfNode::Nested { key, nodes } = &mut nodes[1] {
+                        if let VdfNode::String { key: VdfString::StringRef(key), .. } = &mut nodes[0] {
+                            nodes[0] = VdfNode::String { key: VdfString::StringRef(*key), value: VdfString::String(CString::new(patch.name)?) };
+                            println!("{:?}", &nodes[0]);
+                        }
+                    }
+                }
+            },
+            None => {
+                println!("Trying to patch App with AppID {}, but no entry found in `appinfo.vdf`", patch.appid);
+            }
+        }
+
+        Ok(())
     }
 }

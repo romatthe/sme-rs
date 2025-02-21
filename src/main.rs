@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::Read;
 
-use crate::appinfo::AppInfoParserPacker;
+use crate::appinfo::{AppInfoParserPacker, AppPatch};
 use crate::vdf::parser::{VdfNode, VdfString};
 use nom::Finish;
 use sha1::{Digest, Sha1};
@@ -13,14 +13,31 @@ mod appinfo;
 
 fn main() -> anyhow::Result<()> {
     let file_read = File::open("appinfo.vdf")?;
+    let mut app_info = v29::AppInfo::parse(file_read)?;
     let mut file_create = File::create("appinfo_duplicated.vdf")?;
 
-    let app_info = v29::AppInfo::parse(file_read)?;
-    v29::packer::pack_app_info(&mut file_create, &app_info)?;
-    drop(file_create);
+    // v29::packer::pack_app_info(&mut file_create, &app_info)?;
+    // drop(file_create);
 
-    let file_read2 = File::open("appinfo_duplicated.vdf")?;
-    let app_info2 = v29::AppInfo::parse(file_read2)?;
+    // let file_read2 = File::open("appinfo_duplicated.vdf")?;
+    // let app_info2 = v29::AppInfo::parse(file_read2)?;
+
+    // Test patching
+    let patch = AppPatch { appid: 1325200, name: "Biden".to_string(), sort_as: None, };
+    app_info.patch_app(patch)?;
+    app_info.pack(file_create)?;
+
+    let file_read = File::open("appinfo_duplicated.vdf")?;
+    let app_info2 = v29::AppInfo::parse(file_read)?;
+    println!("{:?}", app_info2.apps.get(&1325200));
+
+    // let app = app_info.apps.get(&1325200).unwrap();
+    // let mut vdf_buffer = Vec::new();
+    // vdf::packer::pack_vdf(&mut vdf_buffer, app.vdf.as_slice())?;
+    // let (_, parsed) = vdf::parser::parse_vdf_nodes(vdf_buffer.as_slice())?;
+
+
+    // app_info.pack(file_create)?;
 
     // for app in app_info.apps {
         // let mut buffer = Vec::new();
@@ -44,41 +61,44 @@ fn main() -> anyhow::Result<()> {
     // println!("Apps: {}", app_info.apps.len());
 
     // let app = app_info.apps.iter().find(|app| app.appid == 1325200).unwrap();
-    let app = app_info.apps.iter().find(|app| app.appid == 1072420).unwrap();
+    // let app = app_info.apps.iter().find(|app| app.appid == 1072420).unwrap();
+    // let app = app_info.apps.get(&1325200).unwrap();
     // let app = app_info.apps.iter().find(|app| app.appid == 7).unwrap();
 
-    let serializer = VdfSerializer::new(&app_info.table);
+    // let serializer = VdfSerializer::new(&app_info.table);
+    // let serialized = serializer.serialize_vdf(&app.vdf)?;
+    // println!("{}", serialized);
 
-    let mut buffer_good = String::new();
-    let mut buffer_bad = String::new();
-    let mut counter_good = 0;
-    let mut counter_bad = 0;
-
-    for app in app_info.apps {
-        let serialized = serializer.serialize_vdf(&app.vdf)?;
-
-        let mut hasher = Sha1::new();
-        hasher.update(serialized.as_bytes());
-
-        let sha1_original = &app.sha1_text;
-        let sha1_calculated = hasher.finalize();
-
-        if *sha1_original == *sha1_calculated {
-            // println!("Original  : {:?}", sha1_original.as_slice());
-            // println!("Calculated: {:?}", sha1_calculated.as_slice());
-            // println!("{serialized}");
-
-            buffer_good.push_str(&serialized);
-            counter_good += 1;
-        } else {
-            buffer_bad.push_str(&serialized);
-            counter_bad += 1;
-        }
-    }
+    // let mut buffer_good = String::new();
+    // let mut buffer_bad = String::new();
+    // let mut counter_good = 0;
+    // let mut counter_bad = 0;
+    //
+    // for (appid, app) in app_info.apps {
+    //     let serialized = serializer.serialize_vdf(&app.vdf)?;
+    //
+    //     let mut hasher = Sha1::new();
+    //     hasher.update(serialized.as_bytes());
+    //
+    //     let sha1_original = &app.sha1_text;
+    //     let sha1_calculated = hasher.finalize();
+    //
+    //     if *sha1_original == *sha1_calculated {
+    //         // println!("Original  : {:?}", sha1_original.as_slice());
+    //         // println!("Calculated: {:?}", sha1_calculated.as_slice());
+    //         // println!("{serialized}");
+    //
+    //         buffer_good.push_str(&serialized);
+    //         counter_good += 1;
+    //     } else {
+    //         buffer_bad.push_str(&serialized);
+    //         counter_bad += 1;
+    //     }
+    // }
 
     // println!("{}", buffer_bad);
-    println!("Count good: {}", counter_good);
-    println!("Count bad:  {}", counter_bad);
+    // println!("Count good: {}", counter_good);
+    // println!("Count bad:  {}", counter_bad);
 
     // println!("Found: {:?}", app.vdf);
     // println!("StringRef name: {:?}", app_info.table[4]);

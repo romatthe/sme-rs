@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io::Read;
 
 use anyhow::anyhow;
-
+use indexmap::IndexMap;
 use crate::v29::{AppInfo, AppInfoHeader, AppSection, HEADER_MAGIC, HEADER_VERSION};
 use crate::vdf::parser::parse_vdf_nodes;
 
@@ -23,6 +23,10 @@ pub(crate) fn parse_app_info (mut input: File) -> anyhow::Result<AppInfo> {
 
     let (input, (header, apps, table)) = tuple((header, apps, table))(&buffer)
         .map_err(|e| anyhow!("Parsing failed!"))?;
+
+    let apps = apps.into_iter()
+        .map(|a| (a.appid, a))
+        .collect::<IndexMap<_, _>>();
 
     Ok(AppInfo {
         header,

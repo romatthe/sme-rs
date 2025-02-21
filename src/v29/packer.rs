@@ -1,6 +1,7 @@
 use std::ffi::CString;
 use crate::v29::{AppInfo, AppInfoHeader, AppSection, HEADER_MAGIC, HEADER_VERSION};
 use std::io::Write;
+use indexmap::IndexMap;
 use nom::AsBytes;
 use sha1::{Digest, Sha1};
 use crate::vdf;
@@ -22,9 +23,9 @@ fn pack_app_info_header<S: Write>(mut writer: &mut S, header: &AppInfoHeader) ->
     Ok(())
 }
 
-fn pack_app_info_apps<S: Write>(writer: &mut S, apps: &[AppSection]) -> anyhow::Result<()> {
-    for app in apps {
-        pack_app_info_app(writer, &app)?;
+fn pack_app_info_apps<S: Write>(writer: &mut S, apps: &IndexMap<u32, AppSection>) -> anyhow::Result<()> {
+    for (key, app) in apps {
+        pack_app_info_app(writer, app)?;
     }
 
     // Mark the end of the apps section

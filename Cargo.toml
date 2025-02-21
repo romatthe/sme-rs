@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
+indexmap = "2.7"
 nom = "7"
 sha1 = "0.10"
