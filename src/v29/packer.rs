@@ -56,7 +56,7 @@ fn pack_app_info_string_table<S: Write>(mut writer: &mut S, table: &Vec<CString>
 
 fn pack_app_info_app<S: Write>(writer: &mut S, section: &AppSection) -> anyhow::Result<()> {
     let mut vdf_buffer = Vec::new();
-    vdf::packer::pack_vdf(&mut vdf_buffer, section.vdf.as_slice())?;
+    vdf::packer::pack_vdf(&mut vdf_buffer, &section.vdf)?;
 
     let mut hasher = Sha1::new();
     hasher.update(&vdf_buffer);
