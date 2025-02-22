@@ -1,5 +1,5 @@
 use std::io::Write;
-use crate::vdf::parser::{VdfNode, VdfString, VdfStringRef};
+use crate::vdf::{VdfNode, VdfString, VdfStringRef};
 
 pub fn pack_vdf<S: Write>(writer: &mut S, vdf: &[(VdfStringRef, VdfNode)]) -> anyhow::Result<()> {
     pack_vdf_nodes(writer, vdf)?;

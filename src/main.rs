@@ -2,7 +2,6 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::appinfo::{AppInfoParserPacker, AppPatch};
-use crate::vdf::parser::{VdfNode, VdfString};
 use nom::Finish;
 use sha1::{Digest, Sha1};
 use crate::vdf::serializer::VdfSerializer;

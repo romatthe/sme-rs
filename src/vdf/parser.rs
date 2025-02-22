@@ -6,32 +6,7 @@ use nom::IResult;
 use nom::multi::many_till;
 use nom::number::complete::le_u32;
 use nom::sequence::terminated;
-
-#[derive(Clone, Debug)]
-pub enum VdfNode {
-    Nested {
-        /// This cannot be made info a hashmap, since some apps have duplicate key/values. Perhaps
-        /// it's fine to remove these duplicate values, but I'm erring on the side of caution and just
-        /// leaving the duplicate key/values in, as it makes it easier to validate the packing logic.
-        nodes: Vec<(VdfStringRef, VdfNode)>,
-    },
-    String {
-        value: VdfString,
-    },
-    Int {
-        value: u32,
-    },
-}
-
-#[derive(Clone, Debug)]
-pub struct VdfStringRef(pub u32);
-
-#[derive(Clone, Debug)]
-pub enum VdfString {
-    StringRef(u32),
-    // String(&'a str),
-    String(CString),
-}
+use crate::vdf::{VdfNode, VdfString, VdfStringRef};
 
 pub fn parse_vdf_nodes(input: &[u8]) -> IResult<&[u8], Vec<(VdfStringRef, VdfNode)>> {
     let mut parser = many_till(parse_vdf_node, tag(b"\x08"));

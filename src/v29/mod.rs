@@ -4,7 +4,7 @@ use std::io::{BufReader, Read};
 use indexmap::IndexMap;
 use crate::appinfo::{AppInfoParserPacker, AppPatch};
 use crate::v29::parser::parse_app_info;
-use crate::vdf::parser::{VdfNode, VdfString, VdfStringRef};
+use crate::vdf::{VdfNode, VdfStringRef};
 
 pub(crate) mod parser;
 pub(crate) mod packer;

@@ -1,5 +1,5 @@
 use std::ffi::CString;
-use crate::vdf::parser::{VdfNode, VdfString, VdfStringRef};
+use crate::vdf::{VdfNode, VdfString, VdfStringRef};
 
 pub struct VdfSerializer<'a> {
     string_table: &'a Vec<CString>,
