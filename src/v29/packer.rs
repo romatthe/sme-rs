@@ -1,10 +1,13 @@
-use std::ffi::CString;
 use crate::v29::{AppInfo, AppInfoHeader, AppSection, HEADER_MAGIC, HEADER_VERSION};
-use std::io::Write;
+use crate::vdf;
+
 use indexmap::IndexMap;
 use nom::AsBytes;
 use sha1::{Digest, Sha1};
-use crate::vdf;
+
+use std::ffi::CString;
+use std::io::Write;
+use std::mem::size_of_val;
 
 pub fn pack_app_info<S: Write>(writer: &mut S, app_info: &AppInfo) -> anyhow::Result<()> {
     // Write the entire apps section to a buffer first so we can figure out the string table offset
