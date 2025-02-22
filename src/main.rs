@@ -12,10 +12,11 @@ mod vdf;
 mod appinfo;
 
 fn main() -> anyhow::Result<()> {
-    let file_read = File::open("appinfo.vdf")?;
+    let file_read = File::open("appinfo.vdf.pristine")?;
     let mut app_info = v29::AppInfo::parse(file_read)?;
     // let mut file_create = File::create("appinfo_duplicated.vdf")?;
-    let mut file_create = File::create("/home/romatthe/.local/share/Steam/appcache/appinfo.vdf")?;
+    let mut file_create = File::create("appinfo.vdf.duplicated")?;
+    app_info.pack(file_create)?;
 
     // v29::packer::pack_app_info(&mut file_create, &app_info)?;
     // drop(file_create);
@@ -24,13 +25,13 @@ fn main() -> anyhow::Result<()> {
     // let app_info2 = v29::AppInfo::parse(file_read2)?;
 
     // Test patching
-    let patch = AppPatch { appid: 1325200, name: "Biden".to_string(), sort_as: None, };
-    app_info.patch_app(patch)?;
-    app_info.pack(file_create)?;
+    // let patch = AppPatch { appid: 1325200, name: "Biden".to_string(), sort_as: None, };
+    // app_info.patch_app(patch)?;
+    // app_info.pack(file_create)?;
 
-    let file_read = File::open("appinfo_duplicated.vdf")?;
-    let app_info2 = v29::AppInfo::parse(file_read)?;
-    println!("{:?}", app_info2.apps.get(&1325200));
+    // let file_read = File::open("appinfo_duplicated.vdf")?;
+    // let app_info2 = v29::AppInfo::parse(file_read)?;
+    // println!("{:?}", app_info2.apps.get(&1325200));
 
     // let app = app_info.apps.get(&1325200).unwrap();
     // let mut vdf_buffer = Vec::new();
@@ -189,52 +190,4 @@ fn main() -> anyhow::Result<()> {
 
 
     Ok(())
-}
-
-fn display_the_node(nodes: &Vec<VdfNode>, table: &Vec<String>) {
-    for node in nodes {
-        match node {
-            VdfNode::Nested { key, nodes } => display_the_node(nodes, table),
-            VdfNode::String { key, value } => {
-                let (ref_key, ref_str) = (decode_the_string(key, table), decode_the_string(value, table));
-                let t = match value {
-                    VdfString::StringRef(_) => "StringRef",
-                    VdfString::String(_) => "String"
-                };
-                // println!(
-                //         "{0: <40} | {1: <20} | {2: <80} | {3: <20} | {4: <40}",
-                //         ref_key.0, ref_key.1, ref_str.0, ref_str.1, t
-                // );
-            },
-            VdfNode::Int { key, value } => {
-                let ref_key = decode_the_string(key, table);
-                // println!(
-                //     "{0: <40} | {1: <20} | {2: <80} | {3: <20} | {4: <40}",
-                //     ref_key.0, ref_key.1, value, "", "Int"
-                // );
-            }
-        }
-    }
-}
-
-fn decode_the_string(string: &VdfString, table: &Vec<String>) -> (String, String) {
-    match string {
-        VdfString::StringRef(n) => {
-            (table[*n as usize].to_string(), n.to_string())
-        }
-        VdfString::String(s) => {
-            (s.clone().into_string().unwrap(), "".to_string())
-        }
-    }
-}
-
-fn display_the_string(string: &VdfString, table: &Vec<String>) -> String {
-    match string {
-        VdfString::StringRef(n) => {
-            table[*n as usize].to_string()
-        }
-        VdfString::String(s) => {
-            s.clone().into_string().unwrap()
-        }
-    }
 }

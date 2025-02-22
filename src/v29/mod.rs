@@ -4,7 +4,7 @@ use std::io::{BufReader, Read};
 use indexmap::IndexMap;
 use crate::appinfo::{AppInfoParserPacker, AppPatch};
 use crate::v29::parser::parse_app_info;
-use crate::vdf::parser::{VdfNode, VdfString};
+use crate::vdf::parser::{VdfNode, VdfString, VdfStringRef};
 
 pub(crate) mod parser;
 pub(crate) mod packer;
@@ -34,7 +34,7 @@ pub struct AppSection {
     pub(crate) sha1_text: Vec<u8>,      // TODO: REMOVE!
     pub(crate) change_number: u32,
     pub(crate) sha1_binary: Vec<u8>,    // TODO: REMOVE!
-    pub(crate) vdf: Vec<VdfNode>,
+    pub(crate) vdf: Vec<(VdfStringRef, VdfNode)>,
 }
 
 impl AppInfoParserPacker for AppInfo {
@@ -51,21 +51,21 @@ impl AppInfoParserPacker for AppInfo {
     }
 
     fn patch_app(&mut self, patch: AppPatch) -> anyhow::Result<()> {
-        match self.apps.get_mut(&patch.appid) {
-            Some(app) => {
-                if let VdfNode::Nested { key, nodes } = &mut app.vdf[0] {
-                    if let VdfNode::Nested { key, nodes } = &mut nodes[1] {
-                        if let VdfNode::String { key: VdfString::StringRef(key), .. } = &mut nodes[0] {
-                            nodes[0] = VdfNode::String { key: VdfString::StringRef(*key), value: VdfString::String(CString::new(patch.name)?) };
-                            println!("{:?}", &nodes[0]);
-                        }
-                    }
-                }
-            },
-            None => {
-                println!("Trying to patch App with AppID {}, but no entry found in `appinfo.vdf`", patch.appid);
-            }
-        }
+        // match self.apps.get_mut(&patch.appid) {
+        //     Some(app) => {
+        //         if let VdfNode::Nested { key, nodes } = &mut app.vdf[0] {
+        //             if let VdfNode::Nested { key, nodes } = &mut nodes[1] {
+        //                 if let VdfNode::String { key: VdfString::StringRef(key), .. } = &mut nodes[0] {
+        //                     nodes[0] = VdfNode::String { key: VdfString::StringRef(*key), value: VdfString::String(CString::new(patch.name)?) };
+        //                     println!("{:?}", &nodes[0]);
+        //                 }
+        //             }
+        //         }
+        //     },
+        //     None => {
+        //         println!("Trying to patch App with AppID {}, but no entry found in `appinfo.vdf`", patch.appid);
+        //     }
+        // }
 
         Ok(())
     }
