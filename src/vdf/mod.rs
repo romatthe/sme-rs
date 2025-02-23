@@ -1,9 +1,6 @@
-use std::ffi::CString;
-
 pub(crate) mod parser;
 pub(crate) mod packer;
 pub(crate) mod serializer;
-
 
 #[derive(Clone, Debug)]
 pub struct VdfNode {
@@ -28,4 +25,7 @@ pub enum VdfNodeKind {
 }
 
 #[derive(Clone, Debug)]
-pub struct VdfStringRef(pub u32);
+pub struct VdfStringRef {
+    pub string_ref: u32,
+    pub string: Option<String>,
+}

@@ -70,8 +70,8 @@ fn pack_vdf_string<S: Write>(writer: &mut S, string: &str) -> anyhow::Result<()>
 }
 
 fn pack_vdf_string_ref<S: Write>(writer: &mut S, string_ref: &VdfStringRef) -> anyhow::Result<()> {
-    let VdfStringRef(ref_id) = string_ref;
-    writer.write(&ref_id.to_le_bytes())?;
+    let VdfStringRef { string_ref, .. } = string_ref;
+    writer.write(&string_ref.to_le_bytes())?;
 
     Ok(())
 }

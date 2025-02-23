@@ -64,7 +64,7 @@ fn parse_vdf_string(input: &[u8]) -> IResult<&[u8], String> {
 }
 
 fn parse_vdf_key(input: &[u8]) -> IResult<&[u8], VdfStringRef> {
-    let (input, keyref) = le_u32(input)?;
+    let (input, string_ref) = le_u32(input)?;
 
-    Ok((input, VdfStringRef(keyref)))
+    Ok((input, VdfStringRef { string_ref, string: None }))
 }
