@@ -14,8 +14,16 @@ fn main() -> anyhow::Result<()> {
     let file_read = File::open("appinfo.vdf.pristine")?;
     let mut app_info = v29::AppInfo::parse(file_read)?;
     // let mut file_create = File::create("appinfo_duplicated.vdf")?;
+
+    let app = app_info.apps.get(&1325200).unwrap();
+    let serializer = VdfSerializer::new(&app_info.table);
+    let serialized = serializer.serialize_vdf(&app.vdf)?;
+
+    println!("{}", serialized);
+
     let mut file_create = File::create("appinfo.vdf.duplicated")?;
     app_info.pack(file_create)?;
+
 
     // v29::packer::pack_app_info(&mut file_create, &app_info)?;
     // drop(file_create);

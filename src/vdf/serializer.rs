@@ -2,11 +2,11 @@ use std::ffi::CString;
 use crate::vdf::{VdfNode, VdfNodeKind, VdfStringRef};
 
 pub struct VdfSerializer<'a> {
-    string_table: &'a Vec<CString>,
+    string_table: &'a Vec<String>,
 }
 
 impl<'a> VdfSerializer<'a> {
-    pub fn new(string_table: &'a Vec<CString>) -> Self {
+    pub fn new(string_table: &'a Vec<String>) -> Self {
         VdfSerializer {
             string_table,
         }
