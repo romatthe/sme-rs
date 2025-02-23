@@ -45,4 +45,34 @@ impl VdfNode {
             VdfNodeKind::Int { .. } => { },
         }
     }
+
+    pub fn get(&self, index: &str) -> Option<&Self> {
+        match &self.value {
+            VdfNodeKind::Nested { nodes } => {
+                for node in nodes {
+                    if node.key.string == Some(index.to_string()) {
+                        return Some(node)
+                    }
+                }
+                None
+            },
+            VdfNodeKind::String { .. } => None,
+            VdfNodeKind::Int { .. } => None,
+        }
+    }
+
+    pub fn get_mut(&mut self, index: &str) -> Option<&mut Self> {
+        match &mut self.value {
+            VdfNodeKind::Nested { nodes } => {
+                for node in nodes {
+                    if node.key.string == Some(index.to_string()) {
+                        return Some(node)
+                    }
+                }
+                None
+            },
+            VdfNodeKind::String { .. } => None,
+            VdfNodeKind::Int { .. } => None,
+        }
+    }
 }

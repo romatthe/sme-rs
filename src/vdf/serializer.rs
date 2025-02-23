@@ -95,7 +95,7 @@ impl<'a> VdfSerializer<'a> {
     fn serialize_vdf_string_ref(&self, buffer: &mut String, string_ref: &VdfStringRef) -> anyhow::Result<()> {
         let VdfStringRef { string_ref, .. } = string_ref; // TODO: Enrich the StringRef at an earlier stage
         let ref_val = &self.string_table[*string_ref as usize];
-        buffer.push_str(&format!("\"{}\"", ref_val.to_str()?));
+        buffer.push_str(&format!("\"{}\"", ref_val.to_string()));
 
         Ok(())
     }
