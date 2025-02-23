@@ -15,7 +15,13 @@ fn main() -> anyhow::Result<()> {
     let mut app_info = v29::AppInfo::parse(file_read)?;
     // let mut file_create = File::create("appinfo_duplicated.vdf")?;
 
-    let app = app_info.apps.get(&1325200).unwrap();
+    // Test patching
+    let patch1 = AppPatch { appid: 1172380, name: "Star Wars Jedi: Fallen Order".to_string(), sort_as: None, };
+    let patch2 = AppPatch { appid: 1072420, name: "Dragon Quest Builders 2".to_string(), sort_as: None, };
+    app_info.patch_app(patch1)?;
+    app_info.patch_app(patch2)?;
+
+    let app = app_info.apps.get(&1172380).unwrap();
     let serializer = VdfSerializer::new(&app_info.table);
     let serialized = serializer.serialize_vdf(&app.vdf)?;
 
