@@ -29,3 +29,20 @@ pub struct VdfStringRef {
     pub string_ref: u32,
     pub string: Option<String>,
 }
+
+impl VdfNode {
+    pub fn complete_string_refs(&mut self, string_table: &[String]) {
+        // Add the concrete string value from string table to the ref
+        self.key.string = Some(string_table[self.key.string_ref as usize].clone());
+
+        match self.value {
+            VdfNodeKind::Nested { ref mut nodes } => {
+                for mut node in nodes {
+                    node.complete_string_refs(string_table);
+                }
+            },
+            VdfNodeKind::String { .. } => { },
+            VdfNodeKind::Int { .. } => { },
+        }
+    }
+}

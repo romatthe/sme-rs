@@ -24,9 +24,15 @@ pub(crate) fn parse_app_info (mut input: File) -> anyhow::Result<AppInfo> {
     let (input, (header, apps, table)) = tuple((header, apps, table))(&buffer)
         .map_err(|e| anyhow!("Parsing failed!"))?;
 
-    let apps = apps.into_iter()
+    // Convert apps to an IndexMap
+    let mut apps = apps.into_iter()
         .map(|a| (a.appid, a))
         .collect::<IndexMap<_, _>>();
+
+    // Assign the strings from the strings table to the VDF nodes of each app
+    for (key, app) in &mut apps {
+        app.complete_string_refs(&table);
+    }
 
     Ok(AppInfo {
         header,

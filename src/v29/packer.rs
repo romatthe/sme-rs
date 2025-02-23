@@ -67,7 +67,7 @@ fn pack_app_info_app<S: Write>(writer: &mut S, section: &AppSection) -> anyhow::
     writer.write(&section.info_state.to_le_bytes())?;
     writer.write(&section.last_updated.to_le_bytes())?;
     writer.write(&section.pics_token.to_le_bytes())?;
-    writer.write(&section.sha1_text)?;
+    writer.write(&section.sha1_text)?;                      // TODO: Use the actual SHA1 value for the text here...
     writer.write(&section.change_number.to_le_bytes())?;
     writer.write(sha1_binary.as_bytes())?;
     writer.write(&vdf_buffer)?;

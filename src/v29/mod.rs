@@ -70,3 +70,11 @@ impl AppInfoParserPacker for AppInfo {
         Ok(())
     }
 }
+
+impl AppSection {
+    pub fn complete_string_refs(&mut self, string_table: &[String]) {
+        for mut node in &mut self.vdf {
+            node.complete_string_refs(string_table)
+        }
+    }
+}
