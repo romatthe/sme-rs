@@ -16,7 +16,7 @@ pub const HEADER_MAGIC: &[u8; 3] = b"\x44\x56\x07";
 pub struct AppInfo {
     pub(crate) header: AppInfoHeader,
     pub(crate) apps: IndexMap<u32, AppSection>, // Indexed by AppID
-    pub(crate) table: Vec<CString>,
+    pub(crate) table: Vec<String>,
 }
 
 #[derive(Debug)]

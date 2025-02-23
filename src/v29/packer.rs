@@ -43,7 +43,7 @@ fn pack_app_info_apps<S: Write>(writer: &mut S, apps: &IndexMap<u32, AppSection>
     Ok(())
 }
 
-fn pack_app_info_string_table<S: Write>(mut writer: &mut S, table: &Vec<CString>) -> anyhow::Result<()> {
+fn pack_app_info_string_table<S: Write>(mut writer: &mut S, table: &Vec<String>) -> anyhow::Result<()> {
     writer.write(&(table.len() as u32).to_le_bytes())?;  // Write the string table length
 
     for cs in table {

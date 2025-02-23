@@ -80,7 +80,7 @@ fn parse_app_section(input: &[u8]) -> IResult<&[u8], AppSection> {
 }
 
 /// Parse the table of null-terminated strings at the end of the appinfo file.
-fn parse_string_table(input: &[u8]) -> IResult<&[u8], Vec<CString>> {
+fn parse_string_table(input: &[u8]) -> IResult<&[u8], Vec<String>> {
     let (input, string_count) = le_u32(input)?;
     let (input, string_table) = count(parse_nullstring, string_count as usize)(input)?;
 
@@ -88,10 +88,10 @@ fn parse_string_table(input: &[u8]) -> IResult<&[u8], Vec<CString>> {
 }
 
 /// Parse a null-terminated variable length string.
-fn parse_nullstring(input: &[u8]) -> IResult<&[u8], CString> {
+fn parse_nullstring(input: &[u8]) -> IResult<&[u8], String> {
     let (input, null_str) = terminated(take_until("\0"), tag("\0"))(input)?;
-    let cstring = CString::new(null_str).unwrap();
+    let string = String::from_utf8(null_str.to_vec()).unwrap();
 
-    Ok((input, cstring))
+    Ok((input, string))
 }
 
