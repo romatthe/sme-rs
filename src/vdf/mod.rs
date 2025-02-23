@@ -4,8 +4,8 @@ pub(crate) mod serializer;
 
 #[derive(Clone, Debug)]
 pub struct VdfNode {
-    key: VdfStringRef,
-    value: VdfNodeKind,
+    pub(crate) key: VdfStringRef,
+    pub(crate) value: VdfNodeKind,
 }
 
 #[derive(Clone, Debug)]

@@ -51,21 +51,52 @@ impl AppInfoParserPacker for AppInfo {
     }
 
     fn patch_app(&mut self, patch: AppPatch) -> anyhow::Result<()> {
-        // match self.apps.get_mut(&patch.appid) {
-        //     Some(app) => {
-        //         if let VdfNode::Nested { key, nodes } = &mut app.vdf[0] {
-        //             if let VdfNode::Nested { key, nodes } = &mut nodes[1] {
-        //                 if let VdfNode::String { key: VdfString::StringRef(key), .. } = &mut nodes[0] {
-        //                     nodes[0] = VdfNode::String { key: VdfString::StringRef(*key), value: VdfString::String(CString::new(patch.name)?) };
-        //                     println!("{:?}", &nodes[0]);
-        //                 }
-        //             }
-        //         }
-        //     },
-        //     None => {
-        //         println!("Trying to patch App with AppID {}, but no entry found in `appinfo.vdf`", patch.appid);
-        //     }
-        // }
+        if let Some(app) = self.apps.get_mut(&patch.appid) {
+            // Set the `name` value in the VDF
+            let mut name = app.vdf[0] // TODO
+                .get_mut("common")
+                .and_then(|n| n.get_mut("name"));
+
+            if let Some(VdfNode { key, value: VdfNodeKind::String { ref mut value } }) = &mut name {
+                *value = patch.name.clone();
+            }
+
+            // Some games have a `name` tag in a non-English language, so the *localized* English
+            // name has to be changed as well
+            let mut name_localized = app.vdf[0] // TODO
+                .get_mut("common")
+                .and_then(|n| n.get_mut("name_localized"))
+                .and_then(|n| n.get_mut("english"));
+
+            if let Some(VdfNode { key, value: VdfNodeKind::String { ref mut value } }) = &mut name_localized {
+                *value = patch.name.clone();
+            }
+
+            let mut sort_as = app.vdf[0]  // TODO
+                .get_mut("common")
+                .and_then(|n| n.get_mut("sortas"));
+
+            // Get the existing `sortas` node and set it to either a new sortas value or just the name
+            if let Some(VdfNode { key, value: VdfNodeKind::String { ref mut value } }) = &mut sort_as {
+                if let Some(sort_as_val) = patch.sort_as {
+                    *value = sort_as_val;
+                } else {
+                    *value = patch.name;
+                }
+            } else {
+                // If no `sortas` node exists, but we are trying to change the node, we need to add it as the last
+                // element in the `common` list.
+                let mut common = app.vdf[0].get_mut("common");  // TODO
+                if let (Some(VdfNode{ key, value:  VdfNodeKind::Nested { nodes }}), Some(sort_as_val)) = (common, patch.sort_as) {
+                    // First we need to know the StringRef that's used in the string table for the `sortas` label
+                    let (ref_id, _) = self.table.iter().enumerate().find(|(i, &ref s)| s == "sortas").unwrap(); // TODO: unwrap!!!! What if it's not in the table?
+                    nodes.push(VdfNode {
+                        key: VdfStringRef { string_ref: ref_id as u32, string: Some("sortas".to_string()) },
+                        value: VdfNodeKind::String { value: sort_as_val }
+                    })
+                }
+            }
+        }
 
         Ok(())
     }
