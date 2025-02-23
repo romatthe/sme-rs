@@ -18,8 +18,10 @@ fn main() -> anyhow::Result<()> {
     // Test patching
     let patch1 = AppPatch { appid: 1172380, name: "Star Wars Jedi: Fallen Order".to_string(), sort_as: None, };
     let patch2 = AppPatch { appid: 1072420, name: "Dragon Quest Builders 2".to_string(), sort_as: None, };
+    let patch3 = AppPatch { appid: 2541170, name: "Persona: Anomalous Tower Chronicle".to_string(), sort_as: Some("Persona 1 MOB".to_string()), };
     app_info.patch_app(patch1)?;
     app_info.patch_app(patch2)?;
+    app_info.patch_app(patch3)?;
 
     let app = app_info.apps.get(&1172380).unwrap();
     let serializer = VdfSerializer::new(&app_info.table);

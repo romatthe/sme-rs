@@ -72,30 +72,30 @@ impl AppInfoParserPacker for AppInfo {
                 *value = patch.name.clone();
             }
 
-            // let mut sort_as = app.vdf
-            //     .get_mut("common")
-            //     .and_then(|n| n.get_mut("sortas"));
-            //
-            // // Get the existing `sortas` node and set it to either a new sortas value or just the name
-            // if let Some(VdfNode { key, value: VdfNodeKind::String { ref mut value } }) = &mut sort_as {
-            //     if let Some(sort_as_val) = patch.sort_as {
-            //         *value = sort_as_val;
-            //     } else {
-            //         *value = patch.name;
-            //     }
-            // } else {
-            //     // If no `sortas` node exists, but we are trying to change the node, we need to add it as the last
-            //     // element in the `common` list.
-            //     let mut common = app.vdf.get_mut("common");
-            //     if let (Some(VdfNode{ key, value:  VdfNodeKind::Nested { nodes }}), Some(sort_as_val)) = (common, patch.sort_as) {
-            //         // First we need to know the StringRef that's used in the string table for the `sortas` label
-            //         let (ref_id, _) = self.table.iter().enumerate().find(|(i, &ref s)| s == "sortas").unwrap(); // TODO: unwrap!!!! What if it's not in the table?
-            //         nodes.push(VdfNode {
-            //             key: VdfStringRef { string_ref: ref_id as u32, string: Some("sortas".to_string()) },
-            //             value: VdfNodeKind::String { value: sort_as_val }
-            //         })
-            //     }
-            // }
+            let mut sort_as = app.vdf
+                .get_mut("common")
+                .and_then(|n| n.get_mut("sortas"));
+
+            // Get the existing `sortas` node and set it to either a new sortas value or just the name
+            if let Some(VdfNode { key, value: VdfNodeKind::String { ref mut value } }) = &mut sort_as {
+                if let Some(sort_as_val) = patch.sort_as {
+                    *value = sort_as_val;
+                } else {
+                    *value = patch.name;
+                }
+            } else {
+                // If no `sortas` node exists, but we are trying to change the node, we need to add it as the last
+                // element in the `common` list.
+                let mut common = app.vdf.get_mut("common");
+                if let (Some(VdfNode{ key, value:  VdfNodeKind::Nested { nodes }}), Some(sort_as_val)) = (common, patch.sort_as) {
+                    // First we need to know the StringRef that's used in the string table for the `sortas` label
+                    let (ref_id, _) = self.table.iter().enumerate().find(|(i, &ref s)| s == "sortas").unwrap(); // TODO: unwrap!!!! What if it's not in the table?
+                    nodes.push(VdfNode {
+                        key: VdfStringRef { string_ref: ref_id as u32, string: Some("sortas".to_string()) },
+                        value: VdfNodeKind::String { value: sort_as_val }
+                    })
+                }
+            }
         }
 
         Ok(())
