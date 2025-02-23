@@ -1,5 +1,5 @@
 use std::io::Write;
-use crate::vdf::{VdfNode, VdfNodeKind, VdfString, VdfStringRef};
+use crate::vdf::{VdfNode, VdfNodeKind, VdfStringRef};
 
 pub fn pack_vdf<S: Write>(writer: &mut S, vdf: &[VdfNode]) -> anyhow::Result<()> {
     pack_vdf_nodes(writer, vdf)?;
@@ -54,23 +54,17 @@ fn pack_vdf_node_string<S: Write>(writer: &mut S, node: &VdfNode) -> anyhow::Res
 
 fn pack_vdf_node_int<S: Write>(writer: &mut S, node: &VdfNode) -> anyhow::Result<()> {
     if let VdfNode { key, value: VdfNodeKind::Int { value } } = node {
-        writer.write(&[0x02])?;         // Magic byte
-        pack_vdf_string_ref(writer, key)?;      // Key
-        writer.write(&value.to_le_bytes())?;// Value
+        writer.write(&[0x02])?;          // Magic byte
+        pack_vdf_string_ref(writer, key)?;   // Key
+        writer.write(&value.to_le_bytes())?; // Value
     }
 
     Ok(())
 }
 
-fn pack_vdf_string<S: Write>(writer: &mut S, string: &VdfString) -> anyhow::Result<()> {
-    match string {
-        VdfString::StringRef(ref_id) => {
-            writer.write(&ref_id.to_le_bytes())?;
-        },
-        VdfString::String(string) => {
-            writer.write(string.as_bytes_with_nul())?;
-        },
-    }
+fn pack_vdf_string<S: Write>(writer: &mut S, string: &str) -> anyhow::Result<()> {
+    writer.write(string.as_bytes())?;
+    writer.write(&[0])?;
 
     Ok(())
 }

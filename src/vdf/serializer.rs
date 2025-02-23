@@ -1,5 +1,5 @@
 use std::ffi::CString;
-use crate::vdf::{VdfNode, VdfNodeKind, VdfString, VdfStringRef};
+use crate::vdf::{VdfNode, VdfNodeKind, VdfStringRef};
 
 pub struct VdfSerializer<'a> {
     string_table: &'a Vec<CString>,
@@ -85,17 +85,9 @@ impl<'a> VdfSerializer<'a> {
         Ok(())
     }
 
-    fn serialize_vdf_string(&self, buffer: &mut String, string: &VdfString) -> anyhow::Result<()> {
-        match string {
-            VdfString::StringRef(ref_id) => {
-                let ref_val = &self.string_table[*ref_id as usize];
-                buffer.push_str(&format!("\"{}\"", ref_val.to_str()?));
-            },
-            VdfString::String(string) => {
-                let string = sanitize_string(string.to_str()?);
-                buffer.push_str(&format!("\"{}\"", &string));         // TODO: Does this even work properly?
-            },
-        };
+    fn serialize_vdf_string(&self, buffer: &mut String, string: &str) -> anyhow::Result<()> {
+        let string = sanitize_string(string);
+        buffer.push_str(&format!("\"{}\"", &string));
 
         Ok(())
     }

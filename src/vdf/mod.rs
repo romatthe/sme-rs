@@ -20,7 +20,7 @@ pub enum VdfNodeKind {
         nodes: Vec<VdfNode>,
     },
     String {
-        value: VdfString,
+        value: String,
     },
     Int {
         value: u32,
@@ -29,10 +29,3 @@ pub enum VdfNodeKind {
 
 #[derive(Clone, Debug)]
 pub struct VdfStringRef(pub u32);
-
-#[derive(Clone, Debug)]
-pub enum VdfString {
-    StringRef(u32),
-    // String(&'a str),
-    String(CString),
-}
