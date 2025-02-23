@@ -71,7 +71,12 @@ fn parse_app_section(input: &[u8]) -> IResult<&[u8], AppSection> {
     let (input, sha1_binary) = take(20usize)(input)?;
     let (input, blob) = take(size - 60)(input)?;
 
-    let (_, vdf) = parse_vdf_nodes(blob)?;
+    let (_, vdfs) = parse_vdf_nodes(blob)?;
+    let vdf = vdfs[0].clone();
+
+    // There should only be one top level node. If that did not turn out to be the case, something
+    // is quire seriously wrong.
+    assert_eq!(vdfs.len(), 1, "The VDF for AppId {} had {} top-level VDF nodes instead of the expected 1.", appid, vdfs.len());
 
     Ok((input, AppSection {
         appid,

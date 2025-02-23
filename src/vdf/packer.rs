@@ -1,8 +1,10 @@
 use std::io::Write;
 use crate::vdf::{VdfNode, VdfNodeKind, VdfStringRef};
 
-pub fn pack_vdf<S: Write>(writer: &mut S, vdf: &[VdfNode]) -> anyhow::Result<()> {
-    pack_vdf_nodes(writer, vdf)?;
+pub fn pack_vdf<S: Write>(writer: &mut S, vdf: &VdfNode) -> anyhow::Result<()> {
+    // There's a single top-level nested `appinfo` node here.
+    pack_vdf_node(writer, vdf)?;
+    writer.write(&[0x08])?;
 
     Ok(())
 }

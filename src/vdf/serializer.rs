@@ -2,19 +2,19 @@ use std::ffi::CString;
 use crate::vdf::{VdfNode, VdfNodeKind, VdfStringRef};
 
 pub struct VdfSerializer<'a> {
-    string_table: &'a Vec<String>,
+    string_table: &'a [String],
 }
 
 impl<'a> VdfSerializer<'a> {
-    pub fn new(string_table: &'a Vec<String>) -> Self {
+    pub fn new(string_table: &'a [String]) -> Self {
         VdfSerializer {
             string_table,
         }
     }
 
-    pub fn serialize_vdf(&self, vdf: &[VdfNode]) -> anyhow::Result<String> {
+    pub fn serialize_vdf(&self, vdf: &VdfNode) -> anyhow::Result<String> {
         let mut buffer = String::new();
-        self.serialize_vdf_nodes(&mut buffer, vdf, 0)?;
+        self.serialize_vdf_node(&mut buffer, vdf, 0)?;
 
         Ok(buffer)
     }

@@ -34,7 +34,7 @@ pub struct AppSection {
     pub(crate) sha1_text: Vec<u8>,      // TODO: REMOVE!
     pub(crate) change_number: u32,
     pub(crate) sha1_binary: Vec<u8>,    // TODO: REMOVE!
-    pub(crate) vdf: Vec<VdfNode>,
+    pub(crate) vdf: VdfNode,
 }
 
 impl AppInfoParserPacker for AppInfo {
@@ -53,7 +53,7 @@ impl AppInfoParserPacker for AppInfo {
     fn patch_app(&mut self, patch: AppPatch) -> anyhow::Result<()> {
         if let Some(app) = self.apps.get_mut(&patch.appid) {
             // Set the `name` value in the VDF
-            let mut name = app.vdf[0] // TODO
+            let mut name = app.vdf
                 .get_mut("common")
                 .and_then(|n| n.get_mut("name"));
 
@@ -63,7 +63,7 @@ impl AppInfoParserPacker for AppInfo {
 
             // Some games have a `name` tag in a non-English language, so the *localized* English
             // name has to be changed as well
-            let mut name_localized = app.vdf[0] // TODO
+            let mut name_localized = app.vdf
                 .get_mut("common")
                 .and_then(|n| n.get_mut("name_localized"))
                 .and_then(|n| n.get_mut("english"));
@@ -72,7 +72,7 @@ impl AppInfoParserPacker for AppInfo {
                 *value = patch.name.clone();
             }
 
-            let mut sort_as = app.vdf[0]  // TODO
+            let mut sort_as = app.vdf
                 .get_mut("common")
                 .and_then(|n| n.get_mut("sortas"));
 
@@ -86,7 +86,7 @@ impl AppInfoParserPacker for AppInfo {
             } else {
                 // If no `sortas` node exists, but we are trying to change the node, we need to add it as the last
                 // element in the `common` list.
-                let mut common = app.vdf[0].get_mut("common");  // TODO
+                let mut common = app.vdf.get_mut("common");
                 if let (Some(VdfNode{ key, value:  VdfNodeKind::Nested { nodes }}), Some(sort_as_val)) = (common, patch.sort_as) {
                     // First we need to know the StringRef that's used in the string table for the `sortas` label
                     let (ref_id, _) = self.table.iter().enumerate().find(|(i, &ref s)| s == "sortas").unwrap(); // TODO: unwrap!!!! What if it's not in the table?
@@ -104,8 +104,6 @@ impl AppInfoParserPacker for AppInfo {
 
 impl AppSection {
     pub fn complete_string_refs(&mut self, string_table: &[String]) {
-        for mut node in &mut self.vdf {
-            node.complete_string_refs(string_table)
-        }
+        self.vdf.complete_string_refs(string_table)
     }
 }
