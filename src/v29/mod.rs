@@ -4,7 +4,7 @@ use std::io::{BufReader, Read};
 use indexmap::IndexMap;
 use crate::appinfo::{AppInfoParserPacker, AppPatch};
 use crate::v29::parser::parse_app_info;
-use crate::vdf::{VdfNode, VdfStringRef};
+use crate::vdf::{VdfNode, VdfNodeKind, VdfStringRef};
 
 pub(crate) mod parser;
 pub(crate) mod packer;
@@ -34,7 +34,7 @@ pub struct AppSection {
     pub(crate) sha1_text: Vec<u8>,      // TODO: REMOVE!
     pub(crate) change_number: u32,
     pub(crate) sha1_binary: Vec<u8>,    // TODO: REMOVE!
-    pub(crate) vdf: Vec<(VdfStringRef, VdfNode)>,
+    pub(crate) vdf: Vec<VdfNode>,
 }
 
 impl AppInfoParserPacker for AppInfo {

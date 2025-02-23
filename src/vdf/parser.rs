@@ -6,16 +6,16 @@ use nom::IResult;
 use nom::multi::many_till;
 use nom::number::complete::le_u32;
 use nom::sequence::terminated;
-use crate::vdf::{VdfNode, VdfString, VdfStringRef};
+use crate::vdf::{VdfNode, VdfNodeKind, VdfString, VdfStringRef};
 
-pub fn parse_vdf_nodes(input: &[u8]) -> IResult<&[u8], Vec<(VdfStringRef, VdfNode)>> {
+pub fn parse_vdf_nodes(input: &[u8]) -> IResult<&[u8], Vec<VdfNode>> {
     let mut parser = many_till(parse_vdf_node, tag(b"\x08"));
     let (input, (nodes, _)) = parser(input)?;
 
     Ok((input, nodes))
 }
 
-fn parse_vdf_node(input: &[u8]) -> IResult<&[u8], (VdfStringRef, VdfNode)> {
+fn parse_vdf_node(input: &[u8]) -> IResult<&[u8], VdfNode> {
     let (input, node) = alt((
         parse_vdf_node_nested,
         parse_vdf_node_string,
@@ -26,34 +26,34 @@ fn parse_vdf_node(input: &[u8]) -> IResult<&[u8], (VdfStringRef, VdfNode)> {
 }
 
 /// Parse a VDF node with nested child nodes.
-fn parse_vdf_node_nested(input: &[u8]) -> IResult<&[u8], (VdfStringRef, VdfNode)> {
+fn parse_vdf_node_nested(input: &[u8]) -> IResult<&[u8], VdfNode> {
     let (input, _) = tag(b"\x00")(input)?;
 
     let (input, key) = parse_vdf_key(input)?;
     let (input, nodes) = parse_vdf_nodes(input)?;
 
-    Ok((input, (key, VdfNode::Nested { nodes })))
+    Ok((input, VdfNode { key, value: VdfNodeKind::Nested { nodes }}))
 }
 
 /// Parse a VDF node with an encoded string value.
-fn parse_vdf_node_string(input: &[u8]) -> IResult<&[u8], (VdfStringRef, VdfNode)> {
+fn parse_vdf_node_string(input: &[u8]) -> IResult<&[u8], VdfNode> {
     let (input, _) = tag(b"\x01")(input)?;
 
     let (input, key) = parse_vdf_key(input)?;
     let (input, value) = parse_vdf_string(input)?;
 
-    Ok((input, (key, VdfNode::String { value: VdfString::String(CString::from(value)) })))
+    Ok((input, VdfNode { key, value: VdfNodeKind::String { value: VdfString::String(CString::from(value)) }}))
 }
 
 
 /// Parse a VDF node with an encoded integer value.
-fn parse_vdf_node_integer(input: &[u8]) -> IResult<&[u8], (VdfStringRef, VdfNode)> {
+fn parse_vdf_node_integer(input: &[u8]) -> IResult<&[u8], VdfNode> {
     let (input, _) = tag(b"\x02")(input)?;
 
     let (input, key) = parse_vdf_key(input)?;
     let (input, value) = le_u32(input)?;
 
-    Ok((input, (key, VdfNode::Int { value })))
+    Ok((input, VdfNode { key, value: VdfNodeKind::Int { value }}))
 }
 
 /// Parse a VDF encoded string.
