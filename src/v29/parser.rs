@@ -22,7 +22,9 @@ pub(crate) fn parse_app_info (mut input: File) -> anyhow::Result<AppInfo> {
     let table = parse_string_table;
 
     let (input, (header, apps, table)) = tuple((header, apps, table))(&buffer)
-        .map_err(|e| anyhow!("Parsing failed!"))?;
+        .map_err(
+            |e| anyhow!("Parsing failed!")
+        )?;
 
     // Convert apps to an IndexMap
     let mut apps = apps.into_iter()
