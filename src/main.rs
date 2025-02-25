@@ -1,9 +1,12 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-
-use crate::appinfo::{AppInfoParserPacker, AppPatch};
+use std::iter::Map;
+use crate::appinfo::{AppInfoParserPacker, AppPatch, Config};
 use nom::Finish;
+use serde::de;
 use sha1::{Digest, Sha1};
+use toml::Value;
 use crate::vdf::serializer::VdfSerializer;
 
 mod v29;
@@ -12,26 +15,31 @@ mod appinfo;
 
 fn main() -> anyhow::Result<()> {
     let file_read = File::open("appinfo.vdf.pristine")?;
+    let file_patches = File::open("/home/romatthe/.steam-grid/metadata/metadata2.json")?;
+
+    let patches: Vec<AppPatch> = serde_json::from_reader(file_patches)?;
     let mut app_info = v29::AppInfo::parse(file_read)?;
-    // let mut file_create = File::create("appinfo_duplicated.vdf")?;
 
     // Test patching
-    let patch1 = AppPatch { appid: 1172380, name: "Star Wars Jedi: Fallen Order".to_string(), sort_as: None, };
-    let patch2 = AppPatch { appid: 1072420, name: "Dragon Quest Builders 2".to_string(), sort_as: None, };
-    let patch3 = AppPatch { appid: 2541170, name: "Persona: Anomalous Tower Chronicle".to_string(), sort_as: Some("Persona 1 MOB".to_string()), };
-    app_info.patch_app(patch1)?;
-    app_info.patch_app(patch2)?;
-    app_info.patch_app(patch3)?;
+    for patch in patches {
+        app_info.patch_app(patch)?
+    }
 
-    let app = app_info.apps.get(&1172380).unwrap();
-    let serializer = VdfSerializer::new(&app_info.table);
-    let serialized = serializer.serialize_vdf(&app.vdf)?;
+    // let patch1 = AppPatch { appid: 1172380, name: "Star Wars Jedi: Fallen Order".to_string(), sort_as: None, };
+    // let patch2 = AppPatch { appid: 1072420, name: "Dragon Quest Builders 2".to_string(), sort_as: None, };
+    // let patch3 = AppPatch { appid: 2541170, name: "Persona: Anomalous Tower Chronicle".to_string(), sort_as: Some("Persona 1 MOB".to_string()), };
+    // app_info.patch_app(patch1)?;
+    // app_info.patch_app(patch2)?;
+    // app_info.patch_app(patch3)?;
 
-    println!("{}", serialized);
+    // let app = app_info.apps.get(&200260).unwrap();
+    // let serializer = VdfSerializer::new(&app_info.table);
+    // let serialized = serializer.serialize_vdf(&app.vdf)?;
+    //
+    // println!("{}", serialized);
 
     let mut file_create = File::create("appinfo.vdf.duplicated")?;
     app_info.pack(file_create)?;
-
 
     // v29::packer::pack_app_info(&mut file_create, &app_info)?;
     // drop(file_create);
